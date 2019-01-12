@@ -1,0 +1,45 @@
+---
+- hosts: gerrit
+  remote_user: ubuntu
+  become: yes
+  become_user: root
+
+  tasks:
+    - name: add gerrit repo to apt
+      apt_repository: 
+        repo: deb mirror://mirrorlist.gerritforge.com/deb gerrit contrib
+        state: present  
+    
+    - name: add the signing key for the Gerrit repo (for apt to check the signature)
+      apt_key:
+        keyserver: keyserver.ubuntu.com
+        id: 1871F775
+
+    - name: add Java ppa (repo)
+      apt_repository: 
+        repo: ppa:webupd8team/java
+        state: present  
+
+    - name: update and upgrade packages
+      apt:
+        upgrade: yes
+        update_cache: yes
+
+    - name: Accept Java 8 License
+      debconf: name='oracle-java8-installer' question='shared/accepted-oracle-license-v1-1' value='true' vtype='select'
+
+    - name: install Java 8 (required for Gerrit)
+      apt:
+        name: oracle-java8-installer
+        state: present
+
+    - name: install Gerrit
+      apt:
+        name: gerrit
+        state: present
+
+    - name: install curl
+      apt:
+        name: curl
+        state: present
+
